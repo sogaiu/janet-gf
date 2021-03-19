@@ -33,7 +33,8 @@
   :cflags [;default-cflags
            "-Itree-sitter/lib/include"
            "-Itree-sitter/lib/src"
-           "-std=c99" "-Wall" "-Wextra"
+           # XXX: not for windows
+           #"-std=c99" "-Wall" "-Wextra"
            # XXX: for debugging
            #"-O0" "-g3"
           ]
@@ -42,10 +43,23 @@
            "tree-sitter-janet-simple/src/parser.c"
            "tree-sitter-janet-simple/src/scanner.c"])
 
+(def names
+  (case (os/which)
+    :windows
+    (map |(string "_tree-sitter" $)
+         [".meta.janet"
+          ".dll"
+          ".exp"
+          ".lib"
+          ".static.lib"])
+    # *nix
+    (map |(string "_tree-sitter" $)
+         [".meta.janet"
+          ".a"
+          ".so"])))
+
 # XXX: building doesn't succeed without this sort of thing
-(each name ["_tree-sitter.a"
-            "_tree-sitter.meta.janet"
-            "_tree-sitter.so"]
+(each name names
   (def jts-path (path/join "jts" name))
   (def build-path (path/join "build" name))
   (rule jts-path [build-path]
