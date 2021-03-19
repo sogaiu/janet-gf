@@ -1,0 +1,64 @@
+* work on indentation of long strings
+  * figure out what should / could be done - possibly nothing is better
+  * check that that makes sense
+  * consider prototyping in a-janet-mode
+  * encode intent in parity of delimiter?
+    * odd => format
+    * even => leave alone
+  * what about long buffers?
+
+* start thinking about pretty printing
+  * newline insertion is involved
+  * possibly max line length / columns might be a factor
+  * study pp.c and io.c
+
+* could there be problems if there are "characters" that are made of
+  more than one byte (e.g. some unicode things)?
+  * possibly not likely before (and including) the first non-whitespace
+    character on a line, which is what may be relevant for computing
+    indentation.
+  * actually might be an issue because tree-sitter's point stuff may
+    require appropriate unicode handling to represent row and column
+    info correctly?
+
+* make janet-gf a jpm-dependencies-independent project
+  * use git submodules
+  * copy portions of janet-tree-sitter to a jts directory
+  * patch the jts/tree_sitter.c file to provide a custom init function
+  * customize project.janet's build
+  * figure out why executable installation is not working
+    * alternatively, just suggest the binary is copied or symlinked
+
+* tests
+  * before and after comparisons for certain files
+  * compare with execution of a-janet-mode via emacs batch mode to try to
+    detect differences in behavior
+  * add more tests to cover calculate-indent cases:
+    * ERROR
+    * par_arr_lit
+    * tuple
+      * no child nodes -- verify what should happen with this
+  * figure out a good way to compare with jfmt
+    * jfmt overwrites the input file so that makes using it a little
+      bit of extra work
+
+* what does gf stand for?
+  * good formatter
+  * good friend
+  * gold(ilocks) formatter
+  * green formatter
+
+* consider different names
+  * ajfmt
+  * afmt
+  * ajstyle
+
+* why does this happen:
+
+  $ JANET_PATH=$(pwd)/jpm-modules janet gf.janet samples/small-with-start-of-content-null.janet 
+  parsed with an error in: samples/small-with-start-of-content-null.janet
+
+  it seems that it may be related to janet string functions not handling
+  nulls inside strings.
+
+  does it still happen?

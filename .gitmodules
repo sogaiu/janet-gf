@@ -1,0 +1,9 @@
+[submodule "janet-tree-sitter"]
+	path = janet-tree-sitter
+	url = https://gitlab.com/sogaiu/janet-tree-sitter
+[submodule "tree-sitter-janet-simple"]
+	path = tree-sitter-janet-simple
+	url = https://gitlab.com/sogaiu/tree-sitter-janet-simple
+[submodule "tree-sitter"]
+	path = tree-sitter
+	url = https://github.com/tree-sitter/tree-sitter
