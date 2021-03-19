@@ -31,15 +31,15 @@
 (declare-native
   :name "_tree-sitter"
   :cflags [;default-cflags
-           "-Itree-sitter/lib/include"
-           "-Itree-sitter/lib/src"
+           "-Ijanet-tree-sitter/tree-sitter/lib/include"
+           "-Ijanet-tree-sitter/tree-sitter/lib/src"
            # XXX: not for windows
            #"-std=c99" "-Wall" "-Wextra"
            # XXX: for debugging
            #"-O0" "-g3"
           ]
   :source ["jts/tree_sitter.c"
-           "tree-sitter/lib/src/lib.c"
+           "janet-tree-sitter/tree-sitter/lib/src/lib.c"
            "tree-sitter-janet-simple/src/parser.c"
            "tree-sitter-janet-simple/src/scanner.c"])
 
