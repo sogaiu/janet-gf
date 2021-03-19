@@ -21,6 +21,10 @@
     require appropriate unicode handling to represent row and column
     info correctly?
 
+* on windows there is some prompting during `jpm build` when some files
+  are copied
+  * determine if that can be disabled / overriden
+
 * make janet-gf a jpm-dependencies-independent project
   * use git submodules
   * copy portions of janet-tree-sitter to a jts directory
