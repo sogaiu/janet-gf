@@ -15,11 +15,9 @@
   (def src
     "(defn my-fn [x] (+ x 1))")
 
-  (def p
-    (tree-sitter/init "janet_simple"))
-
   (def t
-    (:parse-string p src))
+    (:parse-string (tree-sitter/init "janet_simple")
+                   src))
 
   (:text (node-at 0 0 t) src)
   # => "("
@@ -60,11 +58,9 @@
   (def src
     "(defn my-fn [x] (+ x 1))")
 
-  (def p
-    (tree-sitter/init "janet_simple"))
-
   (def t
-    (:parse-string p src))
+    (:parse-string (tree-sitter/init "janet_simple")
+                   src))
 
   (:text (context-node-at 0 0 t) src)
   # => src
@@ -103,17 +99,12 @@
       " :x\n"
       " :y]"])
 
-  (def p
-    (tree-sitter/init "janet_simple"))
-
   (def t
-    (:parse p nil lines))
-
-  (def rn
-    (:root-node t))
+    (:parse (tree-sitter/init "janet_simple")
+            nil lines))
 
   (def sqtn
-    (:child rn 0))
+    (:child (:root-node t) 0))
 
   # XXX: does this seem right?
   (count-prev-child-nodes sqtn 0)
@@ -137,11 +128,9 @@
   (def lines
     @["[:a [:b]]"])
 
-  (def p
-    (tree-sitter/init "janet_simple"))
-
   (def t
-    (:parse p nil lines))
+    (:parse (tree-sitter/init "janet_simple")
+            nil lines))
 
   (def rn
     (:root-node t))
