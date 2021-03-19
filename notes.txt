@@ -1,12 +1,3 @@
-* work on indentation of long strings
-  * figure out what should / could be done - possibly nothing is better
-  * check that that makes sense
-  * consider prototyping in a-janet-mode
-  * encode intent in parity of delimiter?
-    * odd => format
-    * even => leave alone
-  * what about long buffers?
-
 * start thinking about pretty printing
   * newline insertion is involved
   * possibly max line length / columns might be a factor
@@ -25,13 +16,8 @@
   are copied
   * determine if that can be disabled / overriden
 
-* make janet-gf a jpm-dependencies-independent project
-  * use git submodules
-  * copy portions of janet-tree-sitter to a jts directory
-  * patch the jts/tree_sitter.c file to provide a custom init function
-  * customize project.janet's build
-  * figure out why executable installation is not working
-    * alternatively, just suggest the binary is copied or symlinked
+* figure out why executable installation is not working (e.g. `jpm install`)
+  * alternatively, just suggest the binary is copied or symlinked
 
 * tests
   * before and after comparisons for certain files
@@ -45,6 +31,17 @@
   * figure out a good way to compare with jfmt
     * jfmt overwrites the input file so that makes using it a little
       bit of extra work
+
+* work on indentation of long strings
+  * figure out what should / could be done
+    * jfmt (spork/fmt) leaves long strings and buffers alone
+    * possibly doing nothing is fine
+  * check that that makes sense
+  * consider prototyping in a-janet-mode
+  * encode intent in parity of delimiter?
+    * odd => format
+    * even => leave alone
+  * what about long buffers?
 
 * what does gf stand for?
   * good formatter
