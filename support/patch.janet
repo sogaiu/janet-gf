@@ -1,4 +1,189 @@
-# XXX: possibly could be nicer with pegs?
+(def start-marker
+  "//////// start cfun_ts_init ////////\n")
+
+(def end-marker
+  "//////// end cfun_ts_init ////////\n")
+
+(def grammar
+  ~{:main (sequence :before :target :after)
+    :before (sequence (capture (to ,start-marker))
+                      ,start-marker)
+    :target (sequence (capture (to ,end-marker))
+                      ,end-marker)
+    :after (capture (thru -1))})
+
+(comment
+
+  (def input
+    ``
+    const JanetAbstractType jts_parser_type = {
+        "tree-sitter/parser",
+        jts_parser_gc,
+        NULL,
+        jts_parser_get,
+        JANET_ATEND_GET
+    };
+
+    //////// start cfun_ts_init ////////
+
+    static Janet cfun_ts_init(int32_t argc, Janet *argv) {
+        janet_fixarity(argc, 2);
+
+        const char *path = (const char *)janet_getstring(argv, 0);
+
+        Clib lib = load_clib(path);
+        if (!lib) {
+            fprintf(stderr, error_clib());
+            return janet_wrap_nil();
+        }
+
+        const char *fn_name = (const char *)janet_getstring(argv, 1);
+
+        JTSLang jtsl;
+        jtsl = (JTSLang) symbol_clib(lib, fn_name);
+        if (!jtsl) {
+            fprintf(stderr, "could not find the target grammar's initializer");
+            return janet_wrap_nil();
+        }
+
+        TSParser *p = ts_parser_new();
+        if (p == NULL) {
+            fprintf(stderr, "ts_parser_new failed");
+            return janet_wrap_nil();
+        }
+
+        Parser *parser =
+            (Parser *)janet_abstract(&jts_parser_type, sizeof(Parser));
+        parser->parser = p;
+
+        bool success = ts_parser_set_language(p, jtsl());
+        if (!success) {
+            fprintf(stderr, "ts_parser_set_language failed");
+            // XXX: abstract will take care of this?
+            //free(p);
+            return janet_wrap_nil();
+        }
+
+        return janet_wrap_abstract(parser);
+    }
+
+    //////// end cfun_ts_init ////////
+
+    /**
+     * Get the node's type as a null-terminated string.
+     */
+    static Janet cfun_node_type(int32_t argc, Janet *argv) {
+        janet_fixarity(argc, 1);
+        Node *node = (Node *)janet_getabstract(argv, 0, &jts_node_type);
+        // XXX: error checking?
+        const char *the_type = ts_node_type(node->node);
+        return janet_cstringv(the_type);
+    }
+    ``)
+
+  (length (peg/match grammar input))
+  # => 3
+
+  (def patch
+    ``
+    //////// start cfun_ts_init ////////
+
+    TSLanguage *tree_sitter_janet_simple();
+
+    static Janet cfun_ts_init(int32_t argc, Janet *argv) {
+        // arguments are ignored
+        janet_fixarity(argc, 2);
+
+        TSParser *p = ts_parser_new();
+        if (p == NULL) {
+          return janet_wrap_nil();
+        }
+
+        Parser* parser =
+          (Parser *)janet_abstract(&jts_parser_type, sizeof(Parser));
+        parser->parser = p;
+
+        // XXX: should check return value of tree_sitter_janet_simple?
+        bool success = ts_parser_set_language(p, tree_sitter_janet_simple());
+        if (!success) {
+          // XXX: abstract will take care of this?
+          //free(p);
+          return janet_wrap_nil();
+        }
+
+        return janet_wrap_abstract(parser);
+    }
+
+    //////// end cfun_ts_init ////////
+    ``)
+
+  (def output
+    ``
+    const JanetAbstractType jts_parser_type = {
+        "tree-sitter/parser",
+        jts_parser_gc,
+        NULL,
+        jts_parser_get,
+        JANET_ATEND_GET
+    };
+
+    //////// start cfun_ts_init ////////
+
+    TSLanguage *tree_sitter_janet_simple();
+
+    static Janet cfun_ts_init(int32_t argc, Janet *argv) {
+        // arguments are ignored
+        janet_fixarity(argc, 2);
+
+        TSParser *p = ts_parser_new();
+        if (p == NULL) {
+          return janet_wrap_nil();
+        }
+
+        Parser* parser =
+          (Parser *)janet_abstract(&jts_parser_type, sizeof(Parser));
+        parser->parser = p;
+
+        // XXX: should check return value of tree_sitter_janet_simple?
+        bool success = ts_parser_set_language(p, tree_sitter_janet_simple());
+        if (!success) {
+          // XXX: abstract will take care of this?
+          //free(p);
+          return janet_wrap_nil();
+        }
+
+        return janet_wrap_abstract(parser);
+    }
+
+    //////// end cfun_ts_init ////////
+
+    /**
+     * Get the node's type as a null-terminated string.
+     */
+    static Janet cfun_node_type(int32_t argc, Janet *argv) {
+        janet_fixarity(argc, 1);
+        Node *node = (Node *)janet_getabstract(argv, 0, &jts_node_type);
+        // XXX: error checking?
+        const char *the_type = ts_node_type(node->node);
+        return janet_cstringv(the_type);
+    }
+    ``)
+
+  (def [before _ after]
+    (peg/match grammar input))
+
+  (length output)
+  # => 1218
+
+  (def patched
+    (string before patch after))
+  # => 1218
+
+  (= output patched)
+  # => true
+
+  )
+
 # XXX: could generalize markers, but leave until later
 # this works when the script is run from the project directory
 (defn patch
@@ -16,47 +201,14 @@
     (eprintf "expected an existing file for: %s" patch-file-path)
     (break false))
   # read in source lines
-  (def src @[])
-  (with [in-f (file/open src-file-path :r)]
-    (var line (file/read in-f :line))
-    (while line
-      (array/push src line)
-      (set line (file/read in-f :line))))
-  # find start of patch marker
-  (var patch-start nil)
-  (for i 0 (length src)
-    (def src-line (get src i))
-    (when (string/has-prefix? "//////// start cfun_ts_init ////////"
-                              src-line)
-      (set patch-start i)
-      (break)))
-  (unless patch-start
-    (eprint "failed to find start of patch marker")
-    (break false))
-  # find end of patch marker
-  (var patch-end nil)
-  (for j (inc patch-start) (length src)
-    (def src-line (get src j))
-    (when (string/has-prefix? "//////// end cfun_ts_init ////////"
-                              src-line)
-      (set patch-end j)
-      (break)))
-  (unless patch-end
-    (eprint "failed to find end of patch marker")
-    (break false))
+  (def src (slurp src-file-path))
   # read in patch lines
-  (def patch @[])
-  (with [in-f (file/open patch-file-path :r)]
-    (var line (file/read in-f :line))
-    (while line
-      (array/push patch line)
-      (set line (file/read in-f :line))))
+  (def patch (slurp patch-file-path))
+  (def [before _ after]
+    (peg/match grammar src))
   # assemble final file
   (with [out-f (file/open src-file-path :w)]
-    (for i 0 patch-start
-      (file/write out-f (get src i)))
-    (each patch-line patch
-      (file/write out-f patch-line))
-    (for j (inc patch-end) (length src)
-      (file/write out-f (get src j))))
+    (file/write out-f before)
+    (file/write out-f patch)
+    (file/write out-f after))
   true)
