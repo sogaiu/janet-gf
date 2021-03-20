@@ -20,6 +20,9 @@
         (each item (os/dir jts-src-root)
           (copy (path/join jts-src-root item)
                 "jts"))
+        # overwrite existing janet wrapper of tree-sitter
+        (copy (path/join "support/tree-sitter.janet")
+              "jts/tree-sitter.janet")
         # patch the source
         (unless (patch/patch "jts/tree_sitter.c"
                              "support/cfun_ts_init.c")
