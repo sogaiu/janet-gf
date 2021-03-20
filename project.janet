@@ -36,8 +36,6 @@
   :cflags [;default-cflags
            "-Ijanet-tree-sitter/tree-sitter/lib/include"
            "-Ijanet-tree-sitter/tree-sitter/lib/src"
-           # XXX: not for windows
-           #"-std=c99" "-Wall" "-Wextra"
            # XXX: for debugging
            #"-O0" "-g3"
           ]
