@@ -16,8 +16,14 @@
   are copied
   * determine if that can be disabled / overriden
 
-* figure out why executable installation is not working (e.g. `jpm install`)
+* jpm install can get the executable into place but the _tree-sitter.*
+  files also get installed presumably because of some incantations
+  in project.janet added to get the build to succeed.  how to get
+  the build to succeed without the _tree-sitter.* files being installed...
   * alternatively, just suggest the binary is copied or symlinked
+  * alternatively, just suggest using `jpm quickbin`
+    * looks like `jpm build` needs to be run first (at least for this project)
+    * thus: `jpm build && jpm quickbin gf.janet gf`
 
 * tests
   * before and after comparisons for certain files
