@@ -9,28 +9,6 @@
 # to make a standalone thing with no external dependencies via jpm,
 # git submodules plus patching is used
 
-(rule "prepare-jts" []
-      (def wd (os/cwd))
-      (defer (os/cd wd)
-        # create and populate jts
-        (os/mkdir "jts")
-        (def jts-src-root
-          "janet-tree-sitter/janet-tree-sitter")
-        # copy the required parts of janet-tree-sitter
-        (each item (os/dir jts-src-root)
-          (copy (path/join jts-src-root item)
-                "jts"))
-        # overwrite existing janet wrapper of tree-sitter
-        (copy (path/join "support/tree-sitter.janet")
-              "jts/tree-sitter.janet")
-        # patch the source
-        (unless (patch/patch "jts/tree_sitter.c"
-                             "support/cfun_ts_init.c")
-          (eprintf "patching failed")
-          (os/exit 1))))
-
-(add-dep "build" "prepare-jts")
-
 (declare-native
   :name "_tree-sitter"
   :cflags [;default-cflags
@@ -43,6 +21,30 @@
            "janet-tree-sitter/tree-sitter/lib/src/lib.c"
            "tree-sitter-janet-simple/src/parser.c"
            "tree-sitter-janet-simple/src/scanner.c"])
+
+# patching
+(rule "jts/tree_sitter.c" []
+      (os/mkdir "jts")
+      (copy "janet-tree-sitter/janet-tree-sitter/tree_sitter.c"
+            "jts")
+      (patch/patch "jts/tree_sitter.c"
+                   "support/cfun_ts_init.c"))
+
+# using a custom version instead of the one in janet-tree-sitter
+(rule "jts/tree-sitter.janet" []
+      (os/mkdir "jts")
+      # using another one anyway so no point in copying
+      #(copy "janet-tree-sitter/janet-tree-sitter/tree-sitter.janet"
+      #      "jts")
+      (copy "support/tree-sitter.janet"
+            "jts"))
+
+(rule "jts/path.janet" []
+      (os/mkdir "jts")
+      (copy "janet-tree-sitter/janet-tree-sitter/path.janet"
+            "jts"))
+
+## gf.janet -- rather manual...
 
 (def names
   (case (os/which)
@@ -59,20 +61,29 @@
           ".a"
           ".so"])))
 
-# XXX: building doesn't succeed without this sort of thing
 (each name names
   (def jts-path (path/join "jts" name))
   (def build-path (path/join "build" name))
-  (rule jts-path [build-path]
-        (copy build-path
-              jts-path))
-  (add-dep "build" jts-path))
+  (rule jts-path []
+        (os/mkdir "jts") # meh
+        (copy build-path "jts"))
+  (add-dep jts-path
+           build-path))
+
+# XXX: didn't work without this
+(rule "gf.janet" [])
+
+(add-dep "gf.janet" "jts/_tree-sitter.meta.janet")
+(add-dep "gf.janet" "jts/_tree-sitter.a")
+(add-dep "gf.janet" "jts/_tree-sitter.so")
+(add-dep "gf.janet" "jts/tree-sitter.janet")
+(add-dep "gf.janet" "jts/path.janet")
 
 (declare-executable
   :name "gf"
   :entry "gf.janet")
 
-(rule "clean-jts" []
+(phony "clean-jts" []
       (rm "jts"))
 
 (add-dep "clean" "clean-jts")
