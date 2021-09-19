@@ -2,6 +2,37 @@
   * newline insertion is involved
   * possibly max line length / columns might be a factor
   * study pp.c and io.c
+  * record rationale notes
+    * help human to perceive
+      * usages
+      * pasting in chat
+      * pasting in pastebin
+    * challenges of text that is static
+      * vertical constraints
+        * janet sort of puts arrays and tuples on single line?
+      * horizontal constraints
+        * clojure.pprint punts
+
+* differences from spork/fmt
+  * spork/fmt doesn't preserve certain things
+    * number of spaces before comments sometimes:
+
+      (def a
+        ``
+        hello
+       ``)    # see what happens on this line
+
+      becomes:
+
+      (def a
+        ``
+        hello
+       ``) # see what happens on this line
+
+    * in general during parsing via pegs, certain characters are
+      discarded (e.g. delimiters, whitespace, etc.) and then
+      "normalized" in output.
+  * spork/fmt is faster
 
 * could there be problems if there are "characters" that are made of
   more than one byte (e.g. some unicode things)?
