@@ -17,7 +17,7 @@
   # where the source lines live
   (def lines @[])
   # read in the source
-  # XXX: what effect that :b have?
+  # XXX: what effect does :b have?
   (with [in-f (file/open file-path :rb)]
     (var line (file/read in-f :line))
     (while line
