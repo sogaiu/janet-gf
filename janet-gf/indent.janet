@@ -49,10 +49,11 @@
   # XXX: some things here may be redundant, but make things
   #      slightly faster?
   (def names
-    ["case" "comment" "cond" "coro"
+    ["case" "comment" "compif" "compwhen" "cond" "coro"
      "def" "def-" "default" "defer" "defglobal"
      "defmacro" "defmacro-" "defn" "defn-" "do"
      "each" "eachk" "eachp" "eachy" "edefer"
+     "ev/do-thread" "ev/spawn" "ev/with-deadline"
      "fn" "for" "forever" "forv"
      "generate"
      "if" "if-let" "if-not" "if-with"
